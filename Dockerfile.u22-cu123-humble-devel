@@ -1,0 +1,67 @@
+FROM nvidia/cuda:12.3.2-devel-ubuntu22.04 as base
+
+SHELL ["/bin/bash", "-c"]
+
+ARG ROS2_DIST=humble  
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+ENV NVIDIA_DRIVER_CAPABILITIES all
+ENV MESA_D3D12_DEFAULT_ADAPTER_NAME=NVIDIA
+
+# Disable apt-get warnings
+RUN apt-get update || true && apt-get install -y --no-install-recommends apt-utils dialog && \
+  rm -rf /var/lib/apt/lists/*
+
+ENV TZ=Europe/Paris
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \ 
+  apt-get update && \
+  apt-get install --yes lsb-release wget less udev sudo build-essential cmake python3 python3-dev python3-pip python3-wheel git jq libopencv-dev libpq-dev zstd usbutils && \    
+  rm -rf /var/lib/apt/lists/*
+
+############ Install Graphics Libraries ############
+
+# Uncomment the lines below to use a 3rd party repository
+# to get the latest (unstable from mesa/main) mesa library version
+RUN apt-get update && apt install -y software-properties-common
+RUN add-apt-repository ppa:oibaf/graphics-drivers -y
+
+RUN apt update && apt install -y \
+    vainfo \
+    mesa-va-drivers \
+    mesa-utils
+
+ENV LIBVA_DRIVER_NAME=d3d12
+ENV LD_LIBRARY_PATH=/usr/lib/wsl/lib
+CMD vainfo --display drm --device /dev/dri/card0
+
+############ Install ROS2 Humble ############
+
+# Set and Check Locale
+RUN apt-get update || true && \
+  apt-get install --no-install-recommends -y locales && \
+  locale-gen en_US en_US.UTF-8 && \
+  update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 && \
+  export LANG=en_US.UTF-8 && \
+  locale  # verify settings && \
+  rm -rf /var/lib/apt/lists/*
+
+# Setup Sources
+RUN apt-get update || true && \
+  apt-get install --no-install-recommends -y software-properties-common && \
+  add-apt-repository universe && \
+  apt-get install -y curl && \
+  curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg && \
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null && \
+  rm -rf /var/lib/apt/lists/*
+
+# Install ROS2
+RUN apt-get update || true && \
+  apt-get install --no-install-recommends -y \
+  ros-${ROS2_DIST}-desktop \
+  ros-dev-tools && \
+  rm -rf /var/lib/apt/lists/*
+
+# Initialize rosdep
+RUN rosdep init && rosdep update

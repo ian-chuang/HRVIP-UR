@@ -1,0 +1,12 @@
+[submodule "ros2_robotiq_gripper"]
+	path = ros2_robotiq_gripper
+	url = https://github.com/ian-chuang/ros2_robotiq_gripper.git
+	branch = main
+[submodule "manipulator_controllers"]
+	path = manipulator_controllers
+	url = https://github.com/ian-chuang/manipulator_controllers.git
+	branch = humble
+[submodule "serial-ros2"]
+	path = serial-ros2
+	url = https://github.com/ian-chuang/serial-ros2.git
+	branch = master

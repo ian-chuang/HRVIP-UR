@@ -1,0 +1,36 @@
+FROM iantc104/cudagl-ros2:u22-cu123-humble-devel
+
+SHELL ["/bin/bash", "-c"]
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install python dependencies
+# RUN pip3 install \ 
+#     pyserial \
+#     pymodbus===2.1.0
+
+# Install general ROS dependencies
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    ros-humble-moveit \
+    ros-humble-ur \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set the working directory in the container
+WORKDIR /root/ros2_ws
+
+# Copy the current directory contents into the container
+COPY . ./src/
+
+# Install ROS dependencies
+RUN source /opt/ros/humble/setup.bash && \
+    apt-get update --fix-missing && \
+    rosdep install -i --from-path src --rosdistro humble -y && \
+    rm -rf /var/lib/apt/lists/*
+
+# Build the ROS workspace
+RUN source /opt/ros/humble/setup.bash && \
+    colcon build
+
+# Source the ROS workspace
+RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
+RUN echo "source /root/ros2_ws/install/local_setup.bash" >> /root/.bashrc

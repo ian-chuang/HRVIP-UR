@@ -1,0 +1,35 @@
+version: '3.9'
+services:
+  hrvip-ur:
+    build:
+      context: .
+      dockerfile: Dockerfile.hrvip-ur # this is the Dockerfile for Aubo ROS2 Environment
+    command: tail -F anything # do nothing on start, just keep the container running
+    environment:
+      # Display X Server GUI.
+      - DISPLAY=${DISPLAY}
+      # Fix a bug with QT
+      - QT_X11_NO_MITSHM=1
+      # Configure Nvidia Docker interface.
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    volumes:
+      # Grant display access to X Server.
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      # add ROS packages to the container
+      - .:/root/ros2_ws/src/
+      # add dev to the container (for USB devices)
+      - /dev:/dev
+    # this is required for GPU support
+    deploy: 
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    # this shares the host network with the container (to easily connect to the Aubo robot)
+    network_mode: "host" 
+    privileged: true
+    stdin_open: true
+    tty: true
