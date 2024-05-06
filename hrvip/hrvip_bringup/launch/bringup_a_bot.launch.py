@@ -22,6 +22,15 @@ def launch_setup(context, *args, **kwargs):
     use_tool_communication = LaunchConfiguration("use_tool_communication")
     tool_device_name = LaunchConfiguration("tool_device_name")
     tool_voltage = LaunchConfiguration("tool_voltage")
+    # other
+    description_package = LaunchConfiguration("description_package")
+    description_file = LaunchConfiguration("description_file")
+    runtime_config_package = LaunchConfiguration("runtime_config_package")
+    controllers_file = LaunchConfiguration("controllers_file")
+    launch_dashboard_client = LaunchConfiguration("launch_dashboard_client")
+    tool_tcp_port = LaunchConfiguration("tool_tcp_port")
+    headless_mode = LaunchConfiguration("headless_mode")
+    controller_spawner_timeout = LaunchConfiguration("controller_spawner_timeout")
 
     robot_description_content = Command(
         [
@@ -62,7 +71,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare(description_package), "rviz", "view_robot.rviz"]
+        [FindPackageShare(description_package), "rviz", "bringup_a_bot.rviz"]
     )
 
     # define update rate
@@ -192,6 +201,7 @@ def launch_setup(context, *args, **kwargs):
         "io_and_status_controller",
         "speed_scaling_state_broadcaster",
         "force_torque_sensor_broadcaster",
+        "pose_control_handle",
     ]
     controllers_inactive = ["forward_position_controller"]
 

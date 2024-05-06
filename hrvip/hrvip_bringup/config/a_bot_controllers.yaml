@@ -26,6 +26,20 @@ controller_manager:
     forward_position_controller:
       type: position_controllers/JointGroupPositionController
 
+    pose_control_handle:
+      type: manipulator_controllers/PoseControlHandle
+      
+    pose_controller:
+      type: manipulator_controllers/PoseController
+
+    twist_controller:
+      type: manipulator_controllers/TwistController
+
+    impedance_pose_controller:
+      type: manipulator_controllers/ImpedancePoseController
+
+    impedance_twist_controller:
+      type: manipulator_controllers/ImpedanceTwistController
 
 speed_scaling_state_broadcaster:
   ros__parameters:
@@ -126,3 +140,358 @@ forward_position_controller:
       - $(var tf_prefix)wrist_1_joint
       - $(var tf_prefix)wrist_2_joint
       - $(var tf_prefix)wrist_3_joint
+
+
+pose_control_handle:
+  ros__parameters:
+    end_effector_link: "$(var tf_prefix)grasp_link"
+    robot_base_link: "$(var tf_prefix)base_link"
+    ft_sensor_ref_link: "$(var tf_prefix)ft_frame"
+    joints:
+      - $(var tf_prefix)shoulder_pan_joint
+      - $(var tf_prefix)shoulder_lift_joint
+      - $(var tf_prefix)elbow_joint
+      - $(var tf_prefix)wrist_1_joint
+      - $(var tf_prefix)wrist_2_joint
+      - $(var tf_prefix)wrist_3_joint
+
+pose_controller:
+  ros__parameters:
+    joints:
+      - $(var tf_prefix)shoulder_pan_joint
+      - $(var tf_prefix)shoulder_lift_joint
+      - $(var tf_prefix)elbow_joint
+      - $(var tf_prefix)wrist_1_joint
+      - $(var tf_prefix)wrist_2_joint
+      - $(var tf_prefix)wrist_3_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    chainable_command_interfaces:
+      - position
+      - velocity
+    kinematics:
+      chain_root: world  # Assumed to be stationary
+      chain_tip: $(var tf_prefix)grasp_link 
+      robot_base: $(var tf_prefix)base_link  
+      robot_end_effector: $(var tf_prefix)grasp_link
+    forward_dynamics_solver:
+      virtual_link_mass: 1.0
+    diff_ik:
+      control:
+        frame: $(var tf_prefix)grasp_link
+        kp:
+          - 1000.0  # x
+          - 1000.0  # y
+          - 1000.0  # z
+          - 100.0  # rx
+          - 100.0  # ry
+          - 100.0  # rz
+        kd_ratio:  
+          - 8.0  # x
+          - 8.0  # y
+          - 8.0  # z
+          - 2.0  # rx
+          - 2.0  # ry
+          - 2.0  # rz
+        max_twist:
+          - 0.2  # x
+          - 0.2  # y
+          - 0.2  # z
+          - 0.2  # rx
+          - 0.2  # ry
+          - 0.2  # rz
+      nullspace:
+        kp: 
+          - 5.0
+          - 5.0
+          - 5.0
+          - 1.0
+          - 1.0
+          - 1.0
+        kd_ratio: 
+          - 1.0
+          - 1.0
+          - 1.0
+          - 1.0
+          - 1.0
+          - 1.0
+        joint_positions: 
+          - 0.0
+          - 0.0
+          - 0.0
+          - 0.0
+          - 0.0
+          - 0.0
+      joint_damping: 
+        damping: 5.0
+        lin_vel_threshold: 10.0
+        ang_vel_threshold: 10.0 
+
+twist_controller:
+  ros__parameters:
+    joints:
+      - $(var tf_prefix)shoulder_pan_joint
+      - $(var tf_prefix)shoulder_lift_joint
+      - $(var tf_prefix)elbow_joint
+      - $(var tf_prefix)wrist_1_joint
+      - $(var tf_prefix)wrist_2_joint
+      - $(var tf_prefix)wrist_3_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    chainable_command_interfaces:
+      - position
+      - velocity
+    kinematics:
+      chain_root: world  # Assumed to be stationary
+      chain_tip: $(var tf_prefix)grasp_link 
+      robot_base: $(var tf_prefix)base_link  
+      robot_end_effector: $(var tf_prefix)grasp_link
+    forward_dynamics_solver:
+      virtual_link_mass: 1.0
+    diff_ik:
+      control:
+        frame: $(var tf_prefix)base_link
+        kp:
+          - 500.0  # x
+          - 500.0  # y
+          - 500.0  # z
+          - 100.0  # rx
+          - 100.0  # ry
+          - 100.0  # rz
+      nullspace:
+        kp: 
+          - 5.0
+          - 5.0
+          - 5.0
+          - 1.0
+          - 1.0
+          - 1.0
+        kd_ratio: 
+          - 1.0
+          - 1.0
+          - 1.0
+          - 1.0
+          - 1.0
+          - 1.0
+        joint_positions: 
+          - 0.0
+          - 0.0
+          - 0.0
+          - 0.0
+          - 0.0
+          - 0.0
+      joint_damping: 
+        damping: 0.0
+        lin_vel_threshold: 0.01
+        ang_vel_threshold: 0.05  
+
+impedance_pose_controller:
+  ros__parameters:
+    joints:
+      - $(var tf_prefix)shoulder_pan_joint
+      - $(var tf_prefix)shoulder_lift_joint
+      - $(var tf_prefix)elbow_joint
+      - $(var tf_prefix)wrist_1_joint
+      - $(var tf_prefix)wrist_2_joint
+      - $(var tf_prefix)wrist_3_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    chainable_command_interfaces:
+      - position
+      - velocity
+    kinematics:
+      chain_root: world  # Assumed to be stationary
+      chain_tip: $(var tf_prefix)grasp_link 
+      robot_base: $(var tf_prefix)base_link  
+      robot_end_effector: $(var tf_prefix)grasp_link
+    forward_dynamics_solver:
+      virtual_link_mass: 1.0
+    ft_sensor:
+      name: $(var tf_prefix)tcp_fts_sensor
+      ft_frame: $(var tf_prefix)wrist_3_link  # Wrench measurements are in this frame
+      new_ft_frame: $(var tf_prefix)wrist_3_link
+      filter_coefficient: 1.0
+      gravity_compensation:
+        gravity_frame: world
+        CoG:  # specifies the center of gravity of the end effector
+          frame: $(var tf_prefix)wrist_3_link
+          pos:
+            - 0.0  # x
+            - 0.0  # y
+            - 0.0  # z
+          force: 0.0 # 11.42865 # mass * 9.81 -> 1.165kg * 9.81
+    impedance:
+      control:
+        frame: grasp_link
+        stiffness:
+          - 100.0  # x
+          - 100.0  # y
+          - 100.0  # z
+          - 5.0  # rx
+          - 5.0  # ry
+          - 5.0  # rz
+        damping_ratio:  # damping can be used instead: zeta = D / (2 * sqrt( M * S ))
+          - 1.0  # x
+          - 1.0  # y
+          - 1.0  # z
+          - 1.0  # rx
+          - 1.0  # ry
+          - 1.0  # rz
+        error_scale:
+          - 1.0  # x
+          - 1.0  # y
+          - 1.0  # z
+          - 5.0  # rx
+          - 5.0  # ry
+          - 5.0  # rz
+        selected_axes:
+          - true  # x
+          - true # y
+          - true  # z
+          - true  # rx
+          - true  # ry
+          - true  # rz
+        max_spring_force:
+          - 10.0 # x
+          - 10.0 # y
+          - 10.0 # z
+          - 1.5 # rx
+          - 1.5 # ry
+          - 1.5 # rz
+      nullspace:
+        stiffness: 
+          - 5.0
+          - 5.0
+          - 5.0
+          - 1.0
+          - 1.0
+          - 1.0
+        damping_ratio: 
+          - 1.0
+          - 1.0
+          - 1.0
+          - 1.0
+          - 1.0
+          - 1.0
+        joint_positions: 
+          - 0.0
+          - 0.0
+          - 0.0
+          - 0.0
+          - 0.0
+          - 0.0
+      joint_damping: 
+        damping: 5.0
+        lin_vel_threshold: 5.0
+        ang_vel_threshold: 0.05    
+
+impedance_twist_controller:
+  ros__parameters:
+    joints:
+      - shoulder_pan_joint
+      - shoulder_lift_joint
+      - elbow_joint
+      - wrist_1_joint
+      - wrist_2_joint
+      - wrist_3_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    chainable_command_interfaces:
+      - position
+      - velocity
+
+    kinematics:
+      chain_root: world  # Assumed to be stationary
+      chain_tip: $(var tf_prefix)grasp_link 
+      robot_base: $(var tf_prefix)base_link  
+      robot_end_effector: $(var tf_prefix)grasp_link
+
+    forward_dynamics_solver:
+      virtual_link_mass: 1.0
+
+    ft_sensor:
+      name: $(var tf_prefix)tcp_fts_sensor
+      ft_frame: $(var tf_prefix)wrist_3_link  # Wrench measurements are in this frame
+      new_ft_frame: $(var tf_prefix)wrist_3_link
+      filter_coefficient: 1.0
+      gravity_compensation:
+        gravity_frame: world
+        CoG:  # specifies the center of gravity of the end effector
+          frame: $(var tf_prefix)wrist_3_link
+          pos:
+            - 0.0  # x
+            - 0.0  # y
+            - 0.0  # z
+          force: 0.0 # 11.42865 # mass * 9.81 -> 1.165kg * 9.81
+
+    impedance:
+      control:
+        frame: $(var tf_prefix)base_link
+        damping:  # damping can be used instead: zeta = D / (2 * sqrt( M * S ))
+          - 150.0 # x
+          - 150.0 # y
+          - 150.0 # z
+          - 100.0 # rx
+          - 100.0 # ry
+          - 100.0 # rz
+        max_damping_force:
+          - 10.0 # x
+          - 10.0 # y
+          - 10.0 # z
+          - 3.0 # rx
+          - 3.0 # ry
+          - 3.0 # rz
+        error_scale:
+          - 1.0  # x
+          - 1.0  # y
+          - 1.0  # z
+          - 1.0  # rx
+          - 1.0  # ry
+          - 1.0  # rz
+        selected_axes:
+          - true  # x
+          - true # y
+          - true  # z
+          - true  # rx
+          - true  # ry
+          - true  # rz
+
+      nullspace:
+        stiffness: 
+          - 5.0
+          - 5.0
+          - 5.0
+          - 1.0
+          - 1.0
+          - 1.0
+        damping_ratio: 
+          - 1.0
+          - 1.0
+          - 1.0
+          - 1.0
+          - 1.0
+          - 1.0
+        joint_positions: 
+          - 0.0
+          - 0.0
+          - 0.0
+          - 0.0
+          - 0.0
+          - 0.0
+
+      joint_damping: 
+        damping: 0.0
+        lin_vel_threshold: 0.01
+        ang_vel_threshold: 0.05
