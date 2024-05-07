@@ -19,7 +19,7 @@
   <xacro:arg name="use_fake_hardware" default="false" />
   <xacro:arg name="fake_sensor_commands" default="false" />
   <!-- initial position for simulations (Fake Hardware, Gazebo, Ignition) -->
-  <xacro:arg name="initial_positions_file" default="$(find ur_description)/config/initial_positions.yaml"/>
+  <xacro:arg name="initial_positions_file" default="$(find hrvip_bringup)/config/fake_initial_positions.yaml"/>
   <!-- convert to property to use substitution in function -->
   <xacro:property name="initial_positions_file" default="$(arg initial_positions_file)"/>  
 
@@ -43,8 +43,10 @@
     tool_device_name="$(arg tool_device_name)"
     tool_tcp_port="$(arg tool_tcp_port)"
     robot_ip="$(arg robot_ip)"
-    reverse_ip="$(arg reverse_ip)"
     headless_mode="$(arg headless_mode)"
+    script_filename="$(find ur_client_library)/resources/external_control.urscript"
+    input_recipe_filename="$(find ur_robot_driver)/resources/rtde_input_recipe.txt"
+    output_recipe_filename="$(find ur_robot_driver)/resources/rtde_output_recipe.txt"
     generate_ros2_control_tag="true"
   >
     <origin xyz="0 0 0" rpy="0 0 0" />          <!-- position robot in the world -->

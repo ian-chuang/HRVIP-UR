@@ -74,26 +74,23 @@ def launch_setup(context, *args, **kwargs):
         [FindPackageShare(description_package), "rviz", "bringup_a_bot.rviz"]
     )
 
-    # define update rate
-    update_rate_config_file = PathJoinSubstitution(
-        [
-            FindPackageShare(runtime_config_package),
-            "config",
-            "ur5e_update_rate.yaml",
-        ]
-    )
-
     # use normal ros2 control is using fake hardware
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[
             robot_description,
-            update_rate_config_file,
             ParameterFile(initial_joint_controllers, allow_substs=True),
         ],
         output="screen",
         condition=IfCondition(use_fake_hardware),
+        remappings=[
+            ('pose_control_handle/target_frame', 'cmd_pos'),
+            ('pose_controller/pose_command', 'cmd_pos'),
+            ('twist_controller/twist_command', 'cmd_vel'),
+            ('impedance_pose_controller/pose_command', 'cmd_pos'),
+            ('impedance_twist_controller/twist_command', 'cmd_vel'),
+        ],
     )
 
     # use ur ros2 control if not using fake hardware
@@ -102,11 +99,17 @@ def launch_setup(context, *args, **kwargs):
         executable="ur_ros2_control_node",
         parameters=[
             robot_description,
-            update_rate_config_file,
             ParameterFile(initial_joint_controllers, allow_substs=True),
         ],
         output="screen",
         condition=UnlessCondition(use_fake_hardware),
+        remappings=[
+            ('pose_control_handle/target_frame', 'cmd_pos'),
+            ('pose_controller/pose_command', 'cmd_pos'),
+            ('twist_controller/twist_command', 'cmd_vel'),
+            ('impedance_pose_controller/pose_command', 'cmd_pos'),
+            ('impedance_twist_controller/twist_command', 'cmd_vel'),
+        ],
     )
 
     # Dashboard client
@@ -201,7 +204,6 @@ def launch_setup(context, *args, **kwargs):
         "io_and_status_controller",
         "speed_scaling_state_broadcaster",
         "force_torque_sensor_broadcaster",
-        "pose_control_handle",
     ]
     controllers_inactive = ["forward_position_controller"]
 

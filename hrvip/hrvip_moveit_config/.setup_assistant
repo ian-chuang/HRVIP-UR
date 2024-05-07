@@ -1,0 +1,25 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: hrvip_bringup
+    relative_path: urdf/a_bot.urdf.xacro
+  srdf:
+    relative_path: config/a_bot.srdf
+  package_settings:
+    author_name: Ian Chuang
+    author_email: fake@email.com
+    generated_timestamp: 1715043290
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
